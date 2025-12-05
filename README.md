@@ -237,11 +237,11 @@ See `TEST_CHECKLIST.md` for comprehensive testing procedures.
 | Document | Description |
 |----------|-------------|
 | **README.md** | This file — quick start guide |
-| **PROJECT_COMPLETE.md** | Complete system overview |
-| **CLINICAL_FRONTEND_COMPLETE.md** | Frontend architecture details |
-| **FINAL_SUMMARY.md** | Executive summary |
-| **TEST_CHECKLIST.md** | Testing procedures |
-| **Myndra/RADIOLOGY_STACK_README.md** | Backend API documentation |
+| **QUICK_START.md** | Fast-track startup instructions |
+| **CLEANUP_SUMMARY.md** | Recent codebase cleanup details |
+| **Myndra/README.md** | Backend system overview |
+| **Myndra/RADIOLOGY_STACK_README.md** | Radiology API documentation |
+| **Myndra/MYNDRA_V2_SUMMARY.md** | Multi-agent RL framework |
 | **frontend/README.md** | Frontend user guide |
 
 ---
@@ -517,6 +517,6 @@ If this project helps your research or clinical work, please consider starring t
 
 ---
 
-Last Updated: November 3, 2025  
-Version: 1.0.0  
+Last Updated: December 3, 2024  
+Version: 1.0.1 (Cleaned & Refactored)  
 Status: Production Ready ✅

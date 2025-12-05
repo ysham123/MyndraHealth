@@ -11,9 +11,9 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const links = [
-    { href: "/", label: "Dashboard", icon: "📊" },
-    { href: "/analyze", label: "Analyze", icon: "🩻" },
-    { href: "/system", label: "System", icon: "⚙️" },
+    { href: "/", label: "Case History", icon: "📋" },
+    { href: "/analyze", label: "New Analysis", icon: "🩻" },
+    // System link removed - not relevant for radiologists
   ];
 
   return (

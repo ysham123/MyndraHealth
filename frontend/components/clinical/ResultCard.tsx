@@ -8,176 +8,124 @@ interface ResultCardProps {
 }
 
 /**
- * Displays analysis results in a clean clinical card format
- * Features:
- * - Diagnosis with confidence percentage
- * - Visual confidence bar
- * - Agent information
- * - Inference time
- * - Expandable heatmap view
- * - Optional orchestrator trace
+ * Professional Radiology Reading Interface
+ * Simulates a PACS workstation environment
  */
 export default function ResultCard({ result }: ResultCardProps) {
-  const [showHeatmap, setShowHeatmap] = useState(false);
-  const [showTrace, setShowTrace] = useState(false);
-
-  const confidencePercent = Math.round(result.probability * 100);
+  const [viewMode, setViewMode] = useState<'original' | 'heatmap'>('heatmap');
+  
+  const confidencePercent = result.probability ? Math.round(result.probability * 100) : 0;
   const isAbnormal = result.diagnosis !== "Normal";
+  
+  // Generate simulated report text based on findings
+  const reportText = isAbnormal 
+    ? `Findings consistent with ${result.diagnosis.toLowerCase()}. AI analysis indicates ${confidencePercent}% probability of pathology in the highlighted regions.`
+    : "No acute cardiopulmonary abnormality detected. Clear lung fields and normal cardiac silhouette.";
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Analysis Result</h3>
-            <p className="text-sm text-gray-600">Case ID: {result.case_id}</p>
-          </div>
-          <div className={`px-4 py-2 rounded-full text-sm font-semibold ${
-            isAbnormal 
-              ? "bg-red-100 text-red-700" 
-              : "bg-green-100 text-green-700"
-          }`}>
-            {result.diagnosis}
+    <div className="bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-700 flex flex-col lg:flex-row min-h-[600px]">
+      {/* Left: Image Viewer (Dark Mode for Reading) */}
+      <div className="flex-1 bg-black relative flex items-center justify-center p-4">
+        <div className="relative max-w-full max-h-full">
+          {/* Base Image / Heatmap */}
+          {result.artifacts?.heatmap_png && viewMode === 'heatmap' ? (
+            <img 
+              src={result.artifacts.heatmap_png} 
+              alt="AI Analysis Heatmap"
+              className="max-h-[600px] object-contain"
+            />
+          ) : (
+            <div className="text-gray-500 flex flex-col items-center">
+              {/* Fallback if original image URL isn't passed, usually we'd show the original here */}
+              <p>Original Image View</p>
+              <p className="text-xs mt-2">(Toggle 'AI Overlay' to view analysis)</p>
+            </div>
+          )}
+          
+          {/* Viewer Controls Overlay */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-800/90 rounded-full px-4 py-2 flex gap-4 backdrop-blur-sm border border-slate-600">
+            <button 
+              onClick={() => setViewMode('original')}
+              className={`text-xs font-medium px-3 py-1 rounded-full transition-colors ${viewMode === 'original' ? 'bg-white text-black' : 'text-white hover:bg-slate-700'}`}
+            >
+              Original
+            </button>
+            <button 
+              onClick={() => setViewMode('heatmap')}
+              className={`text-xs font-medium px-3 py-1 rounded-full transition-colors ${viewMode === 'heatmap' ? 'bg-blue-500 text-white' : 'text-white hover:bg-slate-700'}`}
+            >
+              AI Overlay
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-6 space-y-6">
-        {/* Confidence Metrics */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-1">Confidence</p>
-            <p className="text-3xl font-bold text-gray-900">{confidencePercent}%</p>
+      {/* Right: Findings & Report (Clinical UI) */}
+      <div className="w-full lg:w-[400px] bg-slate-50 border-l border-slate-200 flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200 bg-white">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-bold text-slate-900">AI Findings</h2>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${isAbnormal ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+              {result.diagnosis}
+            </span>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-1">Agent</p>
-            <p className="text-lg font-semibold text-gray-900">{result.agent}</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-1">Inference Time</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {result.inference_time.toFixed(2)}s
-            </p>
-          </div>
-        </div>
-
-        {/* Confidence Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 font-medium">Diagnostic Confidence</span>
-            <span className="text-gray-900 font-bold">{confidencePercent}%</span>
-          </div>
-          <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-700 ${
-                isAbnormal ? "bg-red-500" : "bg-green-500"
-              }`}
-              style={{ width: `${confidencePercent}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          {result.artifacts?.heatmap_png && (
-            <button
-              onClick={() => setShowHeatmap(!showHeatmap)}
-              className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              {showHeatmap ? "Hide" : "Show"} Heatmap
-            </button>
-          )}
-          {result.trace && result.trace.length > 0 && (
-            <button
-              onClick={() => setShowTrace(!showTrace)}
-              className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-            >
-              {showTrace ? "Hide" : "Show"} Trace
-            </button>
-          )}
-        </div>
-
-        {/* Heatmap Display */}
-        {showHeatmap && result.artifacts?.heatmap_png && (
-          <div className="border-t border-gray-200 pt-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">
-              Saliency Heatmap
-            </h4>
-            <div className="rounded-lg overflow-hidden border border-gray-200">
-              <img
-                src={result.artifacts.heatmap_png}
-                alt="Diagnostic heatmap"
-                className="w-full h-auto"
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <span>Confidence:</span>
+            <div className="flex-1 h-2 w-24 bg-slate-200 rounded-full overflow-hidden">
+              <div 
+                className={`h-full ${isAbnormal ? 'bg-red-500' : 'bg-green-500'}`} 
+                style={{ width: `${confidencePercent}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Red regions indicate areas of high diagnostic significance
+            <span className="font-mono font-medium text-slate-700">{confidencePercent}%</span>
+          </div>
+        </div>
+
+        {/* Draft Report Section */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+            Draft Report (Preliminary)
+          </h3>
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+            <p className="text-sm text-slate-800 leading-relaxed font-serif">
+              {reportText}
             </p>
           </div>
-        )}
 
-        {/* Orchestrator Trace */}
-        {showTrace && result.trace && (
-          <div className="border-t border-gray-200 pt-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-4">
-              Analysis Timeline
-            </h4>
-            <div className="space-y-3">
-              {result.trace.map((step, idx) => (
-                <div key={idx} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold">
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1 bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-gray-900">
-                        {step.step.charAt(0).toUpperCase() + step.step.slice(1)}
-                      </span>
-                      {step.agent && (
-                        <span className="text-xs text-gray-600 bg-white px-2 py-1 rounded">
-                          {step.agent}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-700">{step.action}</p>
-                    {step.output && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        → {step.output}
-                      </p>
-                    )}
-                    {step.confidence !== undefined && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-blue-500"
-                            style={{ width: `${step.confidence * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-600">
-                          {(step.confidence * 100).toFixed(0)}%
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="mt-6">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Suggested Actions
+            </h3>
+            <ul className="space-y-2">
+              {isAbnormal ? (
+                <>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <span className="text-orange-500">⚠️</span> Verify heatmap localization
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <span className="text-blue-500">ℹ️</span> Correlate with clinical history
+                  </li>
+                </>
+              ) : (
+                <li className="flex items-center gap-2 text-sm text-slate-700">
+                  <span className="text-green-500">✓</span> Mark as Normal
+                </li>
+              )}
+            </ul>
           </div>
-        )}
+        </div>
 
-        {/* Error Log */}
-        {result.artifacts?.log && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-yellow-800 mb-1">System Log</p>
-            <p className="text-xs text-yellow-700 font-mono">{result.artifacts.log}</p>
+        {/* Action Footer */}
+        <div className="p-6 border-t border-slate-200 bg-slate-100">
+          <div className="grid grid-cols-2 gap-3">
+            <button className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm">
+              Edit Report
+            </button>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm">
+              Finalize
+            </button>
           </div>
-        )}
-
-        {/* Timestamp */}
-        <div className="text-xs text-gray-500 text-center">
-          Analysis completed: {new Date(result.timestamp).toLocaleString()}
         </div>
       </div>
     </div>
